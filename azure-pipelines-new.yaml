@@ -45,7 +45,7 @@ stages:
           environment: DEV
           terraformPath: $(Build.SourcesDirectory)/terraform
           tfversion: $(tfversion)
-          location: ${{ parameters.location }}
+          location: 'UK SOUTH'
           stack: '09-video-hearing-core'
           project: $(project)
           product: 'vh'
