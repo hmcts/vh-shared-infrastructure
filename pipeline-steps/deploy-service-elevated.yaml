@@ -132,13 +132,13 @@ steps:
             -var-file $(System.DefaultWorkingDirectory)/config/terraform/${{ parameters.project }}/vars/${{ parameters.stack }}/$(env).tfvars
             $(variableName)
 
-  - task: TerraformCLI@0
-    displayName: Terraform apply
+  #- task: TerraformCLI@0
+  #  displayName: Terraform apply
     #condition: and(always(), ne(variables['Build.Reason'], 'PullRequest'))
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'), not(contains('${{ parameters.run_stage }}', 'CI')))
-    inputs:
-      command: apply
-      terraformVersion: ${{ parameters.tfversion }}
-      workingDirectory: $(System.DefaultWorkingDirectory)/terraform/${{ parameters.stack }}
-      environmentServiceName: ${{ parameters.serviceConnection }}
-      commandOptions: '--auto-approve tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
+  #  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'), not(contains('${{ parameters.run_stage }}', 'CI')))
+  #  inputs:
+  #    command: apply
+  #    terraformVersion: ${{ parameters.tfversion }}
+  #    workingDirectory: $(System.DefaultWorkingDirectory)/terraform/${{ parameters.stack }}
+  #    environmentServiceName: ${{ parameters.serviceConnection }}
+  #    commandOptions: '--auto-approve tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
