@@ -12,6 +12,9 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+################################################
+# Terraform Plan Dev. ##########################
+
 stages:
   - stage: 'Terraform_Plan_Dev'
     displayName: 'Terraform Plan Dev'
@@ -20,6 +23,8 @@ stages:
       displayName: 'Terraform Plan Dev'
       variables:
       - group: vh-tenant-creds
+      - name: env
+        value: DEV
       - name: gaServiceConnection
         value: DTS-SHAREDSERVICES-DEV-Video Hearings
       - name: tfversion
@@ -38,4 +43,8 @@ stages:
           vh_tenant_id: $(vh_tenant_id)
           vh_client_secret: $(vh_client_secret)
           vh_client_id: $(vh_client_id)
-          environment: DEV
+          environment: $(env)
+
+      - template: pipeline-steps/ado-vars-to-tf.yaml
+        parameters: 
+          environment: $(env)
