@@ -42,7 +42,7 @@ stages:
 
       - template: pipeline-steps/terraform-validate.yaml
         parameters:
-          environment: ${{ parameters.env }}
+          environment: DEV
           terraformPath: $(Build.SourcesDirectory)/terraform
           tfversion: $(tfversion)
           location: ${{ parameters.location }}
@@ -52,5 +52,5 @@ stages:
           builtFrom: $(Build.Repository.Name)
           serviceConnection: $(serviceConnection)
           activity_name: Video_Hearing_Core
-          run_stage: ${{ parameters.Run_Stage }}
+          run_stage: ?
           state_sub: $(vh_tf_state_sub)
