@@ -39,18 +39,3 @@ stages:
           vh_client_secret: $(vh_client_secret)
           vh_client_id: $(vh_client_id)
           environment: DEV
-
-      - template: pipeline-steps/terraform-validate.yaml
-        parameters:
-          environment: DEV
-          terraformPath: $(Build.SourcesDirectory)/terraform
-          tfversion: $(tfversion)
-          location: 'UK SOUTH'
-          stack: '09-video-hearing-core'
-          project: $(project)
-          product: 'vh'
-          builtFrom: $(Build.Repository.Name)
-          serviceConnection: $(serviceConnection)
-          activity_name: Video_Hearing_Core
-          run_stage: string
-          state_sub: $(vh_tf_state_sub)
