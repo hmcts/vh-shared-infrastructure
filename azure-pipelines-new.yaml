@@ -24,7 +24,7 @@ stages:
       variables:
       - group: vh-tenant-creds
       - name: env
-        value: DEV
+        value: dev
       - name: gaServiceConnection
         value: DTS-SHAREDSERVICES-DEV-Video Hearings
       - name: tfversion
