@@ -52,5 +52,5 @@ stages:
           builtFrom: $(Build.Repository.Name)
           serviceConnection: $(serviceConnection)
           activity_name: Video_Hearing_Core
-          run_stage: ?
+          run_stage: string
           state_sub: $(vh_tf_state_sub)
