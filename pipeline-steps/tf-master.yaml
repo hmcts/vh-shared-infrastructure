@@ -1,0 +1,390 @@
+#
+#.INFORMATION
+#
+#    Name:            terraform-plan-apply.yml
+#
+#    Description:     Multi Stage YAML Pipeline For Terraform Deployments.
+#
+#    Author:          James Ferrari | james.ferrari@version1.com
+#
+#    Version:         1.0
+#
+#    Date:            28/10/2021 
+# 
+#    Requires:        Windows Agent - Terraform, Azure CLI
+#                     Linux Agent   - Terraform, Azure CLI, PowerShell Core
+#
+#.CHANGE LOG
+#
+#    Version 1.0      28/10/2021      First Release
+#
+
+
+##################################################################################
+# Runtime Parameters. ############################################################
+##################################################################################
+
+parameters:
+- name: tfInstallRequired # Optional - Defaults To True (Use False is using Self Hosted Agents with TF Installed).
+  type: boolean
+  default: true
+
+- name: tfVersion # Optional - Defaults to 1.0.10, Only Used if tfInstallRequired =  true
+  type: string
+  default: 1.1.9
+
+- name: azStorageFirewallRuleRequired # Optional - Defaults to True (Use False if Storage Account Firewall is Disabled or Using Self Hosted Agent which is Already Whitelisted.)
+  type: boolean
+  default: true
+
+- name: tfVarsFile # Optional - Must Use Full Path if using .tfvars file, e.g, /terraform/infra/env/prod.tfvars
+  type: string
+  default: noVarsFile
+
+- name: resourceGroup # Required - Name of Resource Group for Deployment.
+  type: string
+
+- name: tfWorkingDirectory # Required - Must Use Full Path, e.g, /terraform/infra
+  type: string
+
+- name: environment # Required - Azure DevOps Environment for Deployment.
+  type: string
+
+- name: tfStorageAccountName # Required - Name of Terraform State Storage Account (Inject as Pipeline Secret)
+  type: string
+
+- name: tfStorageContainerName # Required - Name of Terraform Storage Container (Inject as Pipeline Secret)
+  type: string
+
+- name: tfStorageAccessKey # Required - Access Key of Terraform Storage Account (Inject as Pipeline Secret)
+  type: string
+
+- name: tfStorageResourceGroup # Required - Name of Resource Group for Terraform Storage Account (Inject as Pipeline Secret)
+  type: string
+
+- name: tfStorageSubscriptionId # Required - Subscription Id of Terraform Storage Account, Required Incase of Deploying Over Multi Subscriptions. (Inject as Pipeline Secret)
+  type: string 
+
+- name: azureServiceConnection # Required - Name of Azure DevOps Azure Service Connection.
+  type: string
+
+- name: agentOs # Required - OS of Agent.
+  type: string
+  values:
+    - linux
+    - windows
+
+stages:
+
+##################################################################################
+# Terraform Plan Stage. ##########################################################
+##################################################################################
+
+  - stage: 'Terraform_Plan_${{ parameters.environment }}'
+    displayName: 'Terraform Plan ${{ parameters.environment }}'
+    variables:
+      - name: scriptType
+        ${{ if eq(parameters.agentOS, 'linux') }}:
+          value: pscore
+        ${{ if eq(parameters.agentOS, 'windows') }}:
+          value: ps
+    jobs:
+    - job: 'Terraform_Plan'
+      displayName: 'Terraform Plan'
+      steps:          
+        # ---------------------------------------------------------------------------------------
+        # Install Terraform if parameters.tfInstallRequired is TRUE.
+        # ---------------------------------------------------------------------------------------
+        - task: TerraformInstaller@0
+          continueOnError: false
+          displayName: 'Install Terraform'
+          condition: eq('${{ parameters.tfInstallRequired }}', 'true')
+          inputs:
+            terraformVersion: ${{ parameters.tfVersion }}
+
+        # ---------------------------------------------------------------------------------------
+        # Set Variables.
+        # ---------------------------------------------------------------------------------------
+        - task: AzureCLI@2
+          name: setVariables
+          displayName: Set Output Variables
+          continueOnError: false
+          inputs:
+            azureSubscription: ${{ parameters.azureServiceConnection }}
+            scriptType: $(scriptType)
+            scriptLocation: inlineScript
+            addSpnToEnvironment: true
+            inlineScript: |
+              Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]$($env:servicePrincipalId)"
+              Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$($env:servicePrincipalKey)"
+              Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$($env:tenantId)"
+        # ---------------------------------------------------------------------------------------
+        # Add Agent IP Address to Firewall if parameters.azStorageFirewallRuleRequired is TRUE.
+        # ---------------------------------------------------------------------------------------
+        - task: AzureCLI@2
+          name: AddFirewallRule
+          displayName: Add Storage Firewall Rule
+          continueOnError: false
+          condition: and(succeeded(), eq('${{ parameters.azStorageFirewallRuleRequired }}', 'true'))
+          inputs:
+            azureSubscription: ${{ parameters.azureServiceConnection }}
+            scriptType: $(scriptType)
+            scriptLocation: inlineScript
+            inlineScript: |
+              az account set --subscription $Env:TF_STORAGE_SUBSCRIPTION_ID
+              az storage account update -g $Env:TF_STORAGE_RESOURCE_GROUP --name $Env:TF_STORAGE_ACCOUNT_NAME --default-action Allow
+              Write-Host "##vso[task.setvariable variable=FW_RULE_ADDED;isOutput=true]yes"
+              Do { $Status = az storage container list --account-name $Env:TF_STORAGE_ACCOUNT_NAME --account-key $Env:TF_STORAGE_ACCESS_KEY ; Write-Host "Testing Storage Account Connectivity, This May Take A Few Attempts, Please Wait..."; Start-Sleep -Seconds 10} While (!($Status))
+          env:
+            TF_STORAGE_SUBSCRIPTION_ID: ${{ parameters.tfStorageSubscriptionId }}
+            TF_STORAGE_ACCOUNT_NAME: ${{ parameters.tfStorageAccountName }}
+            TF_STORAGE_RESOURCE_GROUP: ${{ parameters.tfStorageResourceGroup }}
+            TF_STORAGE_ACCESS_KEY: ${{ parameters.tfStorageAccessKey}}
+            
+        # ---------------------------------------------------------------------------------------
+        # Initialize Terraform.
+        # Fetch Variable Group Secrets and Store into Environment Variable To Configure Backend.
+        # ---------------------------------------------------------------------------------------
+        - powershell: |
+              Write-Host "##[command]Terraform is Initializing..."
+               
+              Set-Location -Path "$(System.DefaultWorkingDirectory)${{parameters.tfWorkingDirectory}}"
+              terraform init `
+              -backend-config="storage_account_name=$env:TF_STORAGE_ACCOUNT_NAME" `
+              -backend-config="access_key=$env:TF_STORAGE_ACCESS_KEY" `
+              -backend-config="container_name=$env:TF_STORAGE_CONTAINER_NAME" `
+              -backend-config="key=${{ parameters.resourcegroup }}/terraform.tfstate"
+          displayName: 'Terraform Init'
+          env:
+            TF_STORAGE_ACCOUNT_NAME: ${{ parameters.tfStorageAccountName }}
+            TF_STORAGE_ACCESS_KEY: ${{ parameters.tfStorageAccessKey}}
+            TF_STORAGE_CONTAINER_NAME: ${{ parameters.tfStorageContainerName }}
+        # ---------------------------------------------------------------------------------------
+        # Validate Terraform Code.
+        # ---------------------------------------------------------------------------------------
+        - powershell: |
+            Write-Host "##[command]Validating Terraform Code, Please Wait..."
+            terraform validate
+          displayName: 'Terraform Validate'
+        # ---------------------------------------------------------------------------------------------------------------
+        # Terraform Plan
+        # Do NOT use Azure Cli to authenticate, this can cause issues with MFA and is not best practice.
+        # Use Azure Resource Manager API by setting our Service Principal's client secret as environment variables (fetched from Variable Group Secret).
+        # This is considered best practice by Hashicorp when running in a CI/CD Pipeline: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/azure_cli
+        # ------------------------------------------------------------------------------------------------------------------
+        - powershell: |
+            Set-Location -Path "$(System.DefaultWorkingDirectory)${{parameters.tfWorkingDirectory}}"
+            Write-Host "##[command]Terraform Is Planning The Deployment, Please Wait..."
+            $tfVarsFile = "${{ parameters.tfVarsFile }}"
+            if ($tfVarsFile -eq "noVarsFile") {
+              terraform plan -input=false -out=${{ parameters.resourcegroup }}-tfplan 
+            }
+            else {
+              terraform plan -input=false -out=${{ parameters.resourcegroup }}-tfplan -var-file="$(System.DefaultWorkingDirectory)${{parameters.tfVarsFile}}"
+            }
+            
+          displayName: 'Terraform Plan'
+          env:
+            ARM_CLIENT_ID: $(setVariables.ARM_CLIENT_ID)
+            ARM_CLIENT_SECRET: $(setVariables.ARM_CLIENT_SECRET)
+            ARM_TENANT_ID: $(setVariables.ARM_TENANT_ID)
+        # ---------------------------------------------------------------------------------------
+        # Run TF Sec To Run Security Checks on Code.
+        # ---------------------------------------------------------------------------------------
+        #- powershell: |
+        #    $tfLocation="$(System.DefaultWorkingDirectory)${{parameters.tfWorkingDirectory}}"
+
+        #    docker run --rm -t -v ${tfLocation}:/src aquasec/tfsec /src -f default
+
+        #  displayName: Terraform Code Security Check
+        #  continueOnError: true
+        #  failOnStderr: false
+        #  errorActionPreference: silentlyContinue
+
+        # ------------------------------------------------------------------------
+        # Zip (Archive) Terraform Files Generated Above.
+        # ------------------------------------------------------------------------
+        - task: ArchiveFiles@2
+          displayName: 'Zip Terraform Files'
+          inputs:
+            rootFolderOrFile: $(System.DefaultWorkingDirectory)${{parameters.tfWorkingDirectory}}
+            archiveType: zip
+            archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)-tfplan.zip'
+
+        # ------------------------------------------------------------------------
+        # Publish Zip As Pipeline Artifact To Be Downloaded For Deployment.
+        # ------------------------------------------------------------------------
+        - task: PublishPipelineArtifact@1
+          displayName: 'Publish Terraform Artifacts'
+          inputs:
+            targetPath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)-tfplan.zip'
+            publishLocation: pipeline
+            artifact: '$(Build.BuildId)-${{ parameters.resourceGroup }}-tfplan'
+            
+        # ---------------------------------------------------------------------------------------
+        # Remove Agent IP Address From Azure Storage Firewall.
+        # ---------------------------------------------------------------------------------------
+        - task: AzureCLI@2
+          continueOnError: false
+          condition: and(eq(variables['AddFirewallRule.FW_RULE_ADDED'], 'yes'), eq('${{ parameters.azStorageFirewallRuleRequired }}', 'true'))
+          displayName: Remove Storage Firewall Rule
+          inputs:
+            azureSubscription: ${{ parameters.azureServiceConnection }}
+            scriptType: $(scriptType)
+            scriptLocation: inlineScript
+            inlineScript: |
+                az account set --subscription $Env:TF_STORAGE_SUBSCRIPTION_ID
+                az storage account update -g $Env:TF_STORAGE_RESOURCE_GROUP --name $Env:TF_STORAGE_ACCOUNT_NAME --default-action Deny
+          env:
+            TF_STORAGE_SUBSCRIPTION_ID: ${{ parameters.tfStorageSubscriptionId }}
+            TF_STORAGE_ACCOUNT_NAME: ${{ parameters.tfStorageAccountName }}
+            TF_STORAGE_RESOURCE_GROUP: ${{ parameters.tfStorageResourceGroup }}
+
+##################################################################################
+# Terraform Apply Stage. #########################################################
+##################################################################################
+
+  - stage: 'Terraform_Apply_${{ parameters.environment }}'
+    displayName: 'Terraform Apply ${{ parameters.environment }}'
+    variables:
+      - name: scriptType
+        ${{ if eq(parameters.agentOS, 'linux') }}:
+          value: pscore
+        ${{ if eq(parameters.agentOS, 'windows') }}:
+          value: ps
+    jobs:
+      - deployment: 'Terraform_Apply'
+        displayName: Terraform Apply
+        continueOnError: false
+        environment: ${{ parameters.environment }}
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                # ---------------------------------------------------------------------------------------
+                # Install Terraform if parameters.tfInstallRequired is TRUE.
+                # ---------------------------------------------------------------------------------------
+                - task: TerraformInstaller@0
+                  continueOnError: false
+                  displayName: 'Install Terraform'
+                  condition: eq('${{ parameters.tfInstallRequired }}', 'true')
+                  inputs:
+                      terraformVersion: ${{ parameters.tfVersion }}
+
+                # ---------------------------------------------------------------------------------------
+                # Install SSH Keys.
+                # ---------------------------------------------------------------------------------------
+                - task: InstallSSHKey@0
+                  condition: ne('${{ parameters.sshKeySecurefile }}', 'null')
+                  inputs:
+                    knownHostsEntry: ${{ parameters.knownHostsEntry }}
+                    sshPublicKey: ${{ parameters.sshPublicKey }}
+                    sshKeySecureFile: ${{ parameters.sshKeySecureFile }}
+
+                # ---------------------------------------------------------------------------------------
+                # Set Variables.
+                # ---------------------------------------------------------------------------------------
+                - task: AzureCLI@2
+                  name: setVariables
+                  displayName: Set Output Variables
+                  continueOnError: false
+                  inputs:
+                    azureSubscription: ${{ parameters.azureServiceConnection }}
+                    scriptType: $(scriptType)
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    inlineScript: |
+                      Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]$($env:servicePrincipalId)"
+                      Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$($env:servicePrincipalKey)"
+                      Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$($env:tenantId)"
+                      
+                # ---------------------------------------------------------------------------------------
+                # Add Agent IP Address to Firewall if parameters.azStorageFirewallRuleRequired is TRUE.
+                # ---------------------------------------------------------------------------------------
+                - task: AzureCLI@2
+                  name: AddFirewallRule
+                  displayName: Add Storage Firewall Rule
+                  continueOnError: false
+                  condition: and(succeeded(), eq('${{ parameters.azStorageFirewallRuleRequired }}', 'true'))
+                  inputs:
+                    azureSubscription: ${{ parameters.azureServiceConnection }}
+                    scriptType: $(scriptType)
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az account set --subscription $Env:TF_STORAGE_SUBSCRIPTION_ID
+                      az storage account update -g $Env:TF_STORAGE_RESOURCE_GROUP --name $Env:TF_STORAGE_ACCOUNT_NAME --default-action Allow
+                      Write-Host "##vso[task.setvariable variable=FW_RULE_ADDED;isOutput=true]yes"
+                      Do { $Status = az storage container list --account-name $Env:TF_STORAGE_ACCOUNT_NAME --account-key $Env:TF_STORAGE_ACCESS_KEY ; Start-Sleep -Seconds 10} While (!($Status))
+                  env:
+                    TF_STORAGE_SUBSCRIPTION_ID: ${{ parameters.tfStorageSubscriptionId }}
+                    TF_STORAGE_ACCOUNT_NAME: ${{ parameters.tfStorageAccountName }}
+                    TF_STORAGE_RESOURCE_GROUP: ${{ parameters.tfStorageResourceGroup }}
+                    TF_STORAGE_ACCESS_KEY: ${{ parameters.tfStorageAccessKey}}
+
+                # ------------------------------------------------------------------------
+                # Extract Artifact.
+                # ------------------------------------------------------------------------
+                - task: ExtractFiles@1
+                  displayName: 'Extract Terraform Artifacts'
+                  inputs:
+                    archiveFilePatterns: '$(Pipeline.Workspace)/$(Build.BuildId)-${{ parameters.resourceGroup }}-tfplan/$(Build.BuildId)-tfplan.zip'
+                    destinationFolder: '$(System.DefaultWorkingDirectory)/'
+                    cleanDestinationFolder: false
+                    overwriteExistingFiles: true
+
+                # ---------------------------------------------------------------------------------------
+                # Initialize Terraform.
+                # Fetch Variable Group Secrets and Store into Environment Variable To Configure Backend.
+                # ---------------------------------------------------------------------------------------
+                - powershell: |
+                    Write-Host "##[command]Terraform is Initializing..."
+                    $LastPath = Split-Path ${{ parameters.tfWorkingDirectory }} -Leaf
+                    Set-Location -Path "$(System.DefaultWorkingDirectory)\$LastPath"
+                    terraform init `
+                    -backend-config="storage_account_name=$env:TF_STORAGE_ACCOUNT_NAME" `
+                    -backend-config="access_key=$env:TF_STORAGE_ACCESS_KEY" `
+                    -backend-config="container_name=$env:TF_STORAGE_CONTAINER_NAME" `
+                    -backend-config="key=${{ parameters.resourcegroup }}/terraform.tfstate"
+                      
+                  displayName: 'Terraform Init'
+                  env:
+                    TF_STORAGE_ACCOUNT_NAME: ${{ parameters.tfStorageAccountName }}
+                    TF_STORAGE_ACCESS_KEY: ${{ parameters.tfStorageAccessKey}}
+                    TF_STORAGE_CONTAINER_NAME: ${{ parameters.tfStorageContainerName }}
+                  
+                # ------------------------------------------------------------------
+                # Terraform Apply 
+                # Do NOT use Azure Cli to authenticate, this can cause issues with MFA and is not best practice.
+                # Use Azure Resource Manager API by setting our Service Principal's client secret as environment variables (fetched from Variable Group Secret).
+                # This is considered best practice by Hashicorp when running in a CI/CD Pipeline: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/azure_cli
+                # ------------------------------------------------------------------------
+                - powershell: |
+                    Write-Host "##[command]Terraform Is Applying Changes, Please Wait..."
+                    $LastPath = Split-Path ${{ parameters.tfWorkingDirectory }} -Leaf
+                    
+                    Set-Location -Path "$(System.DefaultWorkingDirectory)\$LastPath"
+                    
+                    terraform apply -auto-approve -input=false ${{ parameters.resourceGroup }}-tfplan
+                  displayName: 'Terraform Apply'
+                  env:
+                    ARM_CLIENT_ID: $(setVariables.ARM_CLIENT_ID)
+                    ARM_CLIENT_SECRET: $(setVariables.ARM_CLIENT_SECRET)
+                    ARM_TENANT_ID: $(setVariables.ARM_TENANT_ID)
+                # ---------------------------------------------------------------------------------------
+                # Remove Agent IP Address From Azure Storage Firewall.
+                # ---------------------------------------------------------------------------------------
+                - task: AzureCLI@2
+                  continueOnError: false
+                  condition: and(eq(variables['AddFirewallRule.FW_RULE_ADDED'], 'yes'), eq('${{ parameters.azStorageFirewallRuleRequired }}', 'true'))
+                  displayName: Remove Storage Firewall Rule
+                  inputs:
+                    azureSubscription: ${{ parameters.azureServiceConnection }}
+                    scriptType: $(scriptType)
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                        az account set --subscription $Env:TF_STORAGE_SUBSCRIPTION_ID
+                        az storage account update -g $Env:TF_STORAGE_RESOURCE_GROUP --name $Env:TF_STORAGE_ACCOUNT_NAME --default-action Deny
+                  env:
+                    TF_STORAGE_SUBSCRIPTION_ID: ${{ parameters.tfStorageSubscriptionId }}
+                    TF_STORAGE_ACCOUNT_NAME: ${{ parameters.tfStorageAccountName }}
+                    TF_STORAGE_RESOURCE_GROUP: ${{ parameters.tfStorageResourceGroup }}
