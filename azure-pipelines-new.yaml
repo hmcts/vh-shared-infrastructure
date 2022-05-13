@@ -23,7 +23,7 @@ stages:
       displayName: 'Terraform Plan Dev'
       variables:
       - group: vh-tenant-creds
-      - name: env
+      - name: environment
         value: DEV
       - name: gaServiceConnection
         value: DTS-SHAREDSERVICES-DEV-Video Hearings
@@ -42,4 +42,4 @@ stages:
 
       - template: pipeline-steps/ado-vars-to-tf.yaml
         parameters: 
-          environment: $(env)
+          environment: $(environment)
