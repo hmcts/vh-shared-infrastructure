@@ -40,7 +40,7 @@ stages:
       steps:
       - template: pipeline-steps/vh-tenant-replacement.yaml
         parameters:
-          env: $(environment)
+          environment: $(environment)
 
       - template: pipeline-steps/ado-vars-to-tf.yaml
         parameters: 
