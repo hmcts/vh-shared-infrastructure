@@ -39,9 +39,7 @@ stages:
         value: DTS-SHAREDSERVICES-DEV-Video Hearings #OPS-APPROVAL-GATE-${{ parameters.env }}-ENVS
       steps:
       - template: pipeline-steps/vh-tenant-replacement.yaml
-        parameters:
-          environment: dev
 
       - template: pipeline-steps/ado-vars-to-tf.yaml
         parameters: 
-          environment: dev
+          environment: $(environment)
