@@ -24,7 +24,7 @@ stages:
       variables:
       - group: vh-tenant-creds
       - name: environment
-        value: dev
+        value: DEV
       - name: gaServiceConnection
         value: DTS-SHAREDSERVICES-DEV-Video Hearings
       - name: tfversion
@@ -39,7 +39,9 @@ stages:
         value: DTS-SHAREDSERVICES-DEV-Video Hearings #OPS-APPROVAL-GATE-${{ parameters.env }}-ENVS
       steps:
       - template: pipeline-steps/vh-tenant-replacement.yaml
+        parameters:
+          env: $(environment)
 
       - template: pipeline-steps/ado-vars-to-tf.yaml
         parameters: 
-          environment: dev
+          environment: $(environment)
