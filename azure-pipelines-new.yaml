@@ -6,35 +6,32 @@ resources:
       ref: refs/heads/master
       endpoint: hmcts
       
-name: VH Shared Services AKS Azure Infrastructure Deployment Pipeline
 trigger:
   - none
 
-variables:
-  - name: gaServiceConnection
-    value: DTS-SHAREDSERVICES-${{ parameters.env }}-Video Hearings
-  - name: tfversion
-    value: 1.1.0
-  # If another project comes along and wants to use the same pipeline file then make this a variable in the UI
-  # but it might be better to template the pipeline more and have a different pipeline file
-  # so that someone doesn't pick the wrong var in the dropdown
-  - name: project
-    value: application
-  # same comment as above ^^
-  - name: serviceConnection
-    value: DTS-SHAREDSERVICES-${{ parameters.env }}-Video Hearings #OPS-APPROVAL-GATE-${{ parameters.env }}-ENVS
+pool:
+  vmImage: 'ubuntu-latest'
 
 stages:
-
   - stage: 'Terraform_Plan_Dev'
     displayName: 'Terraform Plan Dev'
     jobs: 
     - job: 'Terraform_Plan_Dev'
       displayName: 'Terraform Plan Dev'
-      pool:
-        vmImage: 'ubuntu-latest'
       variables:
-        - group: vh-tenant-creds
+      - group: vh-tenant-creds
+      - name: gaServiceConnection
+        value: DTS-SHAREDSERVICES-DEV-Video Hearings
+      - name: tfversion
+        value: 1.9.0
+        # If another project comes along and wants to use the same pipeline file then make this a variable in the UI
+        # but it might be better to template the pipeline more and have a different pipeline file
+        # so that someone doesn't pick the wrong var in the dropdown
+      - name: project
+        value: application
+      # same comment as above ^^
+      - name: serviceConnection
+        value: DTS-SHAREDSERVICES-DEV-Video Hearings #OPS-APPROVAL-GATE-${{ parameters.env }}-ENVS
       steps:
       - template: pipeline-steps/vh-tenant-replacement.yaml
         parameters:
