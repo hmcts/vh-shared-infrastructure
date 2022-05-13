@@ -1,7 +1,7 @@
 parameters:
-- name: env
+- name: environment
   type: string
-  
+
 steps:
   - task: Bash@3
     displayName: 'VH Tenant Cred Replacement'
