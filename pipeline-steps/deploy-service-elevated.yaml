@@ -29,7 +29,7 @@ steps:
 
   - template: keyvault-read.yaml
     parameters:
-      serviceConnection: $(serviceConnection)
+      serviceConnection: ${{ parameters.serviceConnection }}
       environment: ${{ parameters.environment }}
 
 # lowercase $env variable comes from the above template
