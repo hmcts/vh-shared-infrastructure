@@ -52,7 +52,10 @@ steps:
       backendAzureRmContainerName: subscription-tfstate
       backendAzureRmKey: '${{ parameters.location }}/${{ parameters.project }}/${{ lower(parameters.environment) }}/${{ parameters.stack }}/terraform.tfstate'
       commandOptions: '-backend-config=subscription_id=${{ parameters.state_sub }}'
-
+ 
+  - bash: |
+      cd '$(Pipeline.Workspace)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
+      ls
 
   - task: TerraformCLI@0
     displayName: Terraform apply
@@ -61,4 +64,5 @@ steps:
       terraformVersion: ${{ parameters.tfversion }}
       workingDirectory: '$(Pipeline.Workspace)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
       environmentServiceName: ${{ parameters.serviceConnection }}
-      commandOptions: '--auto-approve tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
+      commandOptions: '--auto-approve "tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}"'
+      
