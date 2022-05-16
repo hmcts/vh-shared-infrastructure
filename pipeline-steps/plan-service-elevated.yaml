@@ -113,11 +113,6 @@ steps:
           workingDirectory: $(System.DefaultWorkingDirectory)/terraform/${{ parameters.stack }}
 
 
-  - bash: |
-      cd '$(System.DefaultWorkingDirectory)/terraform/${{ parameters.stack }}'
-      terraform force-unlock -force "0830e31e-ba8a-0c9e-be3c-c64dc42492cb"
-
-
   - task: TerraformCLI@0
     displayName: Terraform Plan
     inputs:
@@ -142,4 +137,4 @@ steps:
     inputs:
       targetPath: '$(System.DefaultWorkingDirectory)/terraform/${{ parameters.stack }}'
       publishLocation: pipeline
-      artifact: 'tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
+      artifact: 'tfplan--$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'

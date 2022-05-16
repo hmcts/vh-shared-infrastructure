@@ -60,3 +60,35 @@ stages:
           #run_stage: ${{ parameters.Run_Stage }}
           state_sub: $(vh_tf_state_sub)
           additional_tf_var: $(ado_vars_to_tf.ado_vars)
+
+  - stage: 'Terraform_Apply_Dev'
+    displayName: 'Terraform Apply Dev'
+    variables:
+      - name: scriptType
+        ${{ if eq(parameters.agentOS, 'linux') }}:
+          value: pscore
+        ${{ if eq(parameters.agentOS, 'windows') }}:
+          value: ps
+    jobs:
+      - deployment: 'Terraform_Apply_Dev'
+        displayName: Terraform Apply Dev
+        continueOnError: false
+        environment: Dev
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - template: pipeline-steps/apply-service-elevated.yaml
+                parameters:
+                  environment: ${{ variables.environment }}
+                  location: 'UK South'
+                  stack: '09-video-hearing-core'
+                  project: $(project)
+                  product: 'vh'
+                  builtFrom: $(Build.Repository.Name)
+                  tfversion: $(tfversion)
+                  serviceConnection: ${{ variables.serviceConnection }}
+                  activity_name: Video_Hearing_Core
+                  #run_stage: ${{ parameters.Run_Stage }}
+                  state_sub: $(vh_tf_state_sub)
+                  additional_tf_var: $(ado_vars_to_tf.ado_vars)
