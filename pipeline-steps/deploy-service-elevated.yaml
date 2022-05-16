@@ -132,6 +132,14 @@ steps:
             -var-file $(System.DefaultWorkingDirectory)/config/terraform/${{ parameters.project }}/vars/${{ parameters.stack }}/$(env).tfvars
             $(variableName)
 
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Terraform Artifacts'
+    inputs:
+      targetPath: '$(System.DefaultWorkingDirectory)/terraform/${{ parameters.stack }}'
+      publishLocation: pipeline
+      artifact: 'tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
+
+
   #- task: TerraformCLI@0
   #  displayName: Terraform apply
     #condition: and(always(), ne(variables['Build.Reason'], 'PullRequest'))

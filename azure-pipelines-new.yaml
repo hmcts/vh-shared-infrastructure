@@ -26,7 +26,7 @@ stages:
       - name: environment
         value: DEV
       - name: tfversion
-        value: 1.9.0
+        value: 1.1.9
       - group: external
       - template: pipeline-steps/ado-vars.yaml
         # If another project comes along and wants to use the same pipeline file then make this a variable in the UI
