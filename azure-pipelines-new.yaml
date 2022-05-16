@@ -25,8 +25,6 @@ stages:
       - group: vh-tenant-creds
       - name: environment
         value: DEV
-      - name: gaServiceConnection
-        value: DTS-SHAREDSERVICES-DEV-Video Hearings
       - name: tfversion
         value: 1.9.0
       - group: external
@@ -45,3 +43,18 @@ stages:
       - template: pipeline-steps/ado-vars-to-tf.yaml
         parameters: 
           environment: $(environment)
+
+      - template: pipeline-steps/deploy-service-elevated.yaml
+        parameters:
+          environment: $(environment)
+          location: 'UK South'
+          stack: '09-video-hearing-core'
+          project: $(project)
+          product: 'vh'
+          builtFrom: $(Build.Repository.Name)
+          tfversion: $(tfversion)
+          serviceConnection: $(serviceConnection)
+          activity_name: Video_Hearing_Core
+          #run_stage: ${{ parameters.Run_Stage }}
+          state_sub: $(vh_tf_state_sub)
+          additional_tf_var: $(ado_vars_to_tf.ado_vars)
