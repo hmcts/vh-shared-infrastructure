@@ -17,7 +17,7 @@ steps:
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
-      az account set -s $(serviceConnection)
+      az account set -s ${{ parameters.serviceConnection }}
       SUB_ID=$(az account show --query id -o tsv)
       TENANT_ID=$(az account show --query tenantId -o tsv)
 
