@@ -132,9 +132,16 @@ steps:
             -var-file $(System.DefaultWorkingDirectory)/config/terraform/${{ parameters.project }}/vars/${{ parameters.stack }}/$(env).tfvars
             $(variableName)
 
+  - task: ArchiveFiles@2
+    displayName: 'Zip Terraform Files'
+    inputs:
+      rootFolderOrFile: '$(System.DefaultWorkingDirectory)/terraform/${{ parameters.stack }}'
+      archiveType: zip
+      archiveFile: '$(Build.ArtifactStagingDirectory)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}.zip'
+
   - task: PublishPipelineArtifact@1
     displayName: 'Publish Terraform Artifacts'
     inputs:
-      targetPath: '$(System.DefaultWorkingDirectory)/terraform/${{ parameters.stack }}'
+      targetPath: '$(Build.ArtifactStagingDirectory)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}.zip'
       publishLocation: pipeline
       artifact: 'tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'

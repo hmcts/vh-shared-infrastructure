@@ -37,6 +37,14 @@ steps:
     inputs:
       terraformVersion: ${{ parameters.tfversion }}
 
+  - task: ExtractFiles@1
+    displayName: 'Extract Terraform Artifacts'
+    inputs:
+      archiveFilePatterns: '$(Pipeline.Workspace)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}.zip'
+      destinationFolder: '$(Pipeline.Workspace)/'
+      cleanDestinationFolder: false
+      overwriteExistingFiles: true
+
   - task: TerraformCLI@0
     displayName: Terraform Init
     inputs:
@@ -52,10 +60,10 @@ steps:
       backendAzureRmContainerName: subscription-tfstate
       backendAzureRmKey: '${{ parameters.location }}/${{ parameters.project }}/${{ lower(parameters.environment) }}/${{ parameters.stack }}/terraform.tfstate'
       commandOptions: '-backend-config=subscription_id=${{ parameters.state_sub }}'
- 
+
   - bash: |
       cd '$(Pipeline.Workspace)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
-      ls
+      ls -lts
 
   - task: TerraformCLI@0
     displayName: Terraform Apply
