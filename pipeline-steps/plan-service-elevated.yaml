@@ -122,7 +122,7 @@ steps:
           environmentServiceName: ${{ parameters.serviceConnection }}
           #publishPlanResults: tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}.tfplan
           commandOptions: >
-            -out tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}
+            -out $(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}.tfplan
             -var control_vault=$(controlKeyVault)
             -var environment=${{ lower(parameters.environment) }}
             -var project=${{ parameters.project }}
