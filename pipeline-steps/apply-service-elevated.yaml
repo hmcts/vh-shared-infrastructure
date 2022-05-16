@@ -56,6 +56,7 @@ steps:
   - bash: |
       cd '$(Pipeline.Workspace)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
       ls
+      echo "tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}"
       terraform apply -auto-approve tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}
     displayName: Terraform Apply
       
