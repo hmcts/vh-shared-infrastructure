@@ -111,9 +111,23 @@ steps:
           command: validate
           terraformVersion: ${{ parameters.tfversion }}
           workingDirectory: $(System.DefaultWorkingDirectory)/terraform/${{ parameters.stack }}
-          
-  - bash: |
-      terraform force-unlock -force "0830e31e-ba8a-0c9e-be3c-c64dc42492cb"
+
+
+  - task: TerraformCLI@0
+    displayName: Terraform Unlock
+    inputs:
+          command: force-unlock
+          terraformVersion: ${{ parameters.tfversion }}
+          workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/${{ parameters.stack }}'
+          backendType: azurerm
+          backendServiceArm: ${{ parameters.serviceConnection }}
+          backendAzureRmResourceGroupName: 'azure-control-${{ parameters.environment }}-rg'
+          backendAzureRmResourceGroupLocation: ${{ parameters.location }}
+          backendAzureRmStorageAccountName: $(controlStorageAccount)
+          backendAzureRmStorageAccountSku: Standard_LRS
+          backendAzureRmContainerName: subscription-tfstate
+          backendAzureRmKey: '${{ parameters.location }}/${{ parameters.project }}/${{ lower(parameters.environment) }}/${{ parameters.stack }}/terraform.tfstate'
+          commandOptions: '-force 0830e31e-ba8a-0c9e-be3c-c64dc42492cb'
 
   - task: TerraformCLI@0
     displayName: Terraform Plan
