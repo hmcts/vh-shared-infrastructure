@@ -89,7 +89,7 @@ steps:
           terraformVersion: ${{ parameters.tfversion }}
 
   - task: TerraformCLI@0
-    displayName: terraform init
+    displayName: Terraform Init
     inputs:
           command: init
           terraformVersion: ${{ parameters.tfversion }}
@@ -106,7 +106,7 @@ steps:
 
 
   - task: TerraformCLI@0
-    displayName: terraform validate
+    displayName: Terraform Validate
     inputs:
           command: validate
           terraformVersion: ${{ parameters.tfversion }}
@@ -114,7 +114,7 @@ steps:
 
 
   - task: TerraformCLI@0
-    displayName: terraform plan
+    displayName: Terraform Plan
     inputs:
           command: plan
           terraformVersion: ${{ parameters.tfversion }}
