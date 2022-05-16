@@ -12,6 +12,10 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+
+variables:
+- name: tfVersion
+  value: 1.1.0
 ################################################
 # Terraform Plan Dev. ##########################
 
@@ -25,8 +29,6 @@ stages:
       - group: vh-tenant-creds
       - name: environment
         value: DEV
-      - name: tfversion
-        value: 1.1.0
       - group: external
       - template: pipeline-steps/ado-vars.yaml
         # If another project comes along and wants to use the same pipeline file then make this a variable in the UI
@@ -67,8 +69,6 @@ stages:
       - group: vh-tenant-creds
       - name: environment
         value: DEV
-      - name: tfversion
-        value: 1.1.9
       - group: external
       - template: pipeline-steps/ado-vars.yaml
         # If another project comes along and wants to use the same pipeline file then make this a variable in the UI
