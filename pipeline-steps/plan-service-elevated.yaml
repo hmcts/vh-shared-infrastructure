@@ -120,7 +120,7 @@ steps:
           terraformVersion: ${{ parameters.tfversion }}
           workingDirectory: $(System.DefaultWorkingDirectory)/terraform/${{ parameters.stack }}
           environmentServiceName: ${{ parameters.serviceConnection }}
-          publishPlanResults: vh-shared-infra.tfplan
+          publishPlanResults: tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}
           commandOptions: >
             -out tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}
             -var control_vault=$(controlKeyVault)
