@@ -46,7 +46,7 @@ stages:
 
       - template: pipeline-steps/deploy-service-elevated.yaml
         parameters:
-          environment: $(environment)
+          environment: ${{ variables.environment }}
           location: 'UK South'
           stack: '09-video-hearing-core'
           project: $(project)
