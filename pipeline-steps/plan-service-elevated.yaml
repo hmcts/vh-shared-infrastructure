@@ -117,12 +117,6 @@ steps:
       cd '$(System.DefaultWorkingDirectory)/terraform/${{ parameters.stack }}'
       terraform force-unlock -force "0830e31e-ba8a-0c9e-be3c-c64dc42492cb"
 
-    displayName: 'Terraform Init'
-    env:
-      TF_STORAGE_ACCOUNT_NAME: ${{ parameters.tfStorageAccountName }}
-      TF_STORAGE_ACCESS_KEY: ${{ parameters.tfStorageAccessKey}}
-      TF_STORAGE_CONTAINER_NAME: ${{ parameters.tfStorageContainerName }}
-  # ------------------------------------------------------------------------
 
   - task: TerraformCLI@0
     displayName: Terraform Plan
