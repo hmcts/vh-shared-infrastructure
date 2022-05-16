@@ -45,7 +45,7 @@ steps:
       backendAzureRmStorageAccountSku: Standard_LRS
       backendAzureRmContainerName: subscription-tfstate
       backendAzureRmKey: '${{ parameters.location }}/${{ parameters.project }}/${{ lower(parameters.environment) }}/${{ parameters.stack }}/terraform.tfstate'
-      commandOptions: '-backend-config=subscription_id=${{ parameters.state_sub }}'
+      commandOptions: '-reconfigure -backend-config=subscription_id=${{ parameters.state_sub }}'
 
 
   - task: TerraformCLI@0
