@@ -137,4 +137,4 @@ steps:
     inputs:
       targetPath: '$(System.DefaultWorkingDirectory)/terraform/${{ parameters.stack }}'
       publishLocation: pipeline
-      artifact: 'tfplan--$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
+      artifact: 'tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'

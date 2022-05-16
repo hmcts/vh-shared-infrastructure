@@ -26,27 +26,26 @@ parameters:
     default: ""
 
 steps:
-
   - task: TerraformInstaller@0
     displayName: 'Install Terraform ${{ parameters.tfversion }}'
     inputs:
-          terraformVersion: ${{ parameters.tfversion }}
+      terraformVersion: ${{ parameters.tfversion }}
 
   - task: TerraformCLI@0
     displayName: Terraform Init
     inputs:
-          command: init
-          terraformVersion: ${{ parameters.tfversion }}
-          workingDirectory: '$(Pipeline.Workspace)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
-          backendType: azurerm
-          backendServiceArm: ${{ parameters.serviceConnection }}
-          backendAzureRmResourceGroupName: 'azure-control-${{ parameters.environment }}-rg'
-          backendAzureRmResourceGroupLocation: ${{ parameters.location }}
-          backendAzureRmStorageAccountName: $(controlStorageAccount)
-          backendAzureRmStorageAccountSku: Standard_LRS
-          backendAzureRmContainerName: subscription-tfstate
-          backendAzureRmKey: '${{ parameters.location }}/${{ parameters.project }}/${{ lower(parameters.environment) }}/${{ parameters.stack }}/terraform.tfstate'
-          commandOptions: '-backend-config=subscription_id=${{ parameters.state_sub }}'
+      command: init
+      terraformVersion: ${{ parameters.tfversion }}
+      workingDirectory: '$(Pipeline.Workspace)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
+      backendType: azurerm
+      backendServiceArm: ${{ parameters.serviceConnection }}
+      backendAzureRmResourceGroupName: 'azure-control-${{ parameters.environment }}-rg'
+      backendAzureRmResourceGroupLocation: ${{ parameters.location }}
+      backendAzureRmStorageAccountName: $(controlStorageAccount)
+      backendAzureRmStorageAccountSku: Standard_LRS
+      backendAzureRmContainerName: subscription-tfstate
+      backendAzureRmKey: '${{ parameters.location }}/${{ parameters.project }}/${{ lower(parameters.environment) }}/${{ parameters.stack }}/terraform.tfstate'
+      commandOptions: '-backend-config=subscription_id=${{ parameters.state_sub }}'
 
 
   - task: TerraformCLI@0
