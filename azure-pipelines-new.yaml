@@ -64,11 +64,21 @@ stages:
   - stage: 'Terraform_Apply_Dev'
     displayName: 'Terraform Apply Dev'
     variables:
-      - name: scriptType
-        ${{ if eq(parameters.agentOS, 'linux') }}:
-          value: pscore
-        ${{ if eq(parameters.agentOS, 'windows') }}:
-          value: ps
+      - group: vh-tenant-creds
+      - name: environment
+        value: DEV
+      - name: tfversion
+        value: 1.1.9
+      - group: external
+      - template: pipeline-steps/ado-vars.yaml
+        # If another project comes along and wants to use the same pipeline file then make this a variable in the UI
+        # but it might be better to template the pipeline more and have a different pipeline file
+        # so that someone doesn't pick the wrong var in the dropdown
+      - name: project
+        value: application
+      # same comment as above ^^
+      - name: serviceConnection
+        value: DTS-SHAREDSERVICES-DEV-Video Hearings #OPS-APPROVAL-GATE-${{ parameters.env }}-ENVS
     jobs:
       - deployment: 'Terraform_Apply_Dev'
         displayName: Terraform Apply Dev
