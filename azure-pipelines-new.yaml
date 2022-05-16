@@ -83,7 +83,7 @@ stages:
       - deployment: 'Terraform_Apply_Dev'
         displayName: Terraform Apply Dev
         continueOnError: false
-        environment: Dev
+        environment: Dev1
         strategy:
           runOnce:
             deploy:
