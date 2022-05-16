@@ -53,7 +53,7 @@ stages:
           product: 'vh'
           builtFrom: $(Build.Repository.Name)
           tfversion: $(tfversion)
-          serviceConnection: $(serviceConnection)
+          serviceConnection: ${{ variables.serviceConnection }}
           activity_name: Video_Hearing_Core
           #run_stage: ${{ parameters.Run_Stage }}
           state_sub: $(vh_tf_state_sub)
