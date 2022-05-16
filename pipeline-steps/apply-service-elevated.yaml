@@ -26,6 +26,12 @@ parameters:
     default: ""
 
 steps:
+
+  - template: keyvault-read.yaml
+    parameters:
+      serviceConnection: ${{ parameters.serviceConnection }}
+      environment: ${{ parameters.environment }}
+      
   - task: TerraformInstaller@0
     displayName: 'Install Terraform ${{ parameters.tfversion }}'
     inputs:
@@ -45,7 +51,7 @@ steps:
       backendAzureRmStorageAccountSku: Standard_LRS
       backendAzureRmContainerName: subscription-tfstate
       backendAzureRmKey: '${{ parameters.location }}/${{ parameters.project }}/${{ lower(parameters.environment) }}/${{ parameters.stack }}/terraform.tfstate'
-      commandOptions: '-reconfigure -backend-config=subscription_id=${{ parameters.state_sub }}'
+      commandOptions: '-backend-config=subscription_id=${{ parameters.state_sub }}'
 
 
   - task: TerraformCLI@0
