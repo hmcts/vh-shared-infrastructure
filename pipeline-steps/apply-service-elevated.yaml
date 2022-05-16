@@ -50,7 +50,7 @@ steps:
     inputs:
       command: init
       terraformVersion: ${{ parameters.tfversion }}
-      workingDirectory: '$(Pipeline.Workspace)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
+      workingDirectory: '$(Pipeline.Workspace)/${{ parameters.stack }}'
       backendType: azurerm
       backendServiceArm: ${{ parameters.serviceConnection }}
       backendAzureRmResourceGroupName: 'azure-control-${{ parameters.environment }}-rg'
@@ -62,7 +62,7 @@ steps:
       commandOptions: '-backend-config=subscription_id=${{ parameters.state_sub }}'
 
   - bash: |
-      cd '$(Pipeline.Workspace)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
+      cd '$(Pipeline.Workspace)/${{ parameters.stack }}'
       ls -lts
 
   - task: TerraformCLI@0
@@ -70,6 +70,6 @@ steps:
     inputs:
       command: apply
       terraformVersion: ${{ parameters.tfversion }}
-      workingDirectory: '$(Pipeline.Workspace)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
+      workingDirectory: '$(Pipeline.Workspace)/${{ parameters.stack }}'
       environmentServiceName: ${{ parameters.serviceConnection }}
       commandOptions: '-input=false "tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}"'
