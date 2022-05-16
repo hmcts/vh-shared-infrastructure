@@ -55,14 +55,6 @@ steps:
  
   - bash: |
       cd '$(Pipeline.Workspace)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
-      ls
-
-  - task: TerraformCLI@0
-    displayName: Terraform apply
-    inputs:
-      command: apply
-      terraformVersion: ${{ parameters.tfversion }}
-      workingDirectory: '$(Pipeline.Workspace)/tfplan-$(Build.BuildId)-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}'
-      environmentServiceName: ${{ parameters.serviceConnection }}
-      commandOptions: '--auto-approve "tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}"'
+      terraform apply --auto-approve tfplan-${{ parameters.project }}-${{ lower(parameters.environment) }}-${{ parameters.stack }}
+    displayName: Terraform Apply
       
