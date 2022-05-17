@@ -34,7 +34,7 @@ stages:
       steps:
       - template: pipeline-steps/check-state.yaml
         parameters:
-          serviceConnection: $(azureServiceConnection)
+          serviceConnection: ${{ variables.azureServiceConnection }}
           resourceGroup: vh-infra-core-tf
           storageAccountName: vhinfracoretf
           containerName: tfstate
