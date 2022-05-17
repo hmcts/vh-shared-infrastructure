@@ -12,13 +12,12 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-
 variables:
 - name: tfVersion
   value: 1.1.0
+- name: tfStateServiceConnection
+  value: DTS-SHAREDSERVICES-PROD-Video Hearings
   
-
-
 stages:
 
 ################################################
@@ -29,13 +28,10 @@ stages:
     jobs:
     - job: 'Check_Terraform_State'
       displayName: Check Terraform State
-      variables:
-      - name: azureServiceConnection
-        value:  DTS-SHAREDSERVICES-PROD-Video Hearings
       steps:
       - template: pipeline-steps/check-state.yaml
         parameters:
-          serviceConnection: ${{ variables.azureServiceConnection }}
+          serviceConnection: ${{ variables.tfStateServiceConnection }}
           resourceGroup: vh-infra-core-tf
           storageAccountName: vhinfracoretf
           containerName: tfstate
@@ -82,7 +78,7 @@ stages:
           builtFrom: $(Build.Repository.Name)
           tfversion: $(tfversion)
           serviceConnection: ${{ variables.serviceConnection }}
-          backendServiceConnection: DTS-SHAREDSERVICES-PROD-Video Hearings
+          backendServiceConnection: ${{ variables.tfStateServiceConnection }}
           activity_name: Video_Hearing_Core
           state_sub: $(vh_tf_state_sub)
           additional_tf_var: $(ado_vars_to_tf.ado_vars)
@@ -122,8 +118,7 @@ stages:
                   builtFrom: $(Build.Repository.Name)
                   tfversion: $(tfversion)
                   serviceConnection: ${{ variables.serviceConnection }}
-                  backendServiceConnection: DTS-SHAREDSERVICES-PROD-Video Hearings
+                  backendServiceConnection: ${{ variables.tfStateServiceConnection }}
                   activity_name: Video_Hearing_Core
-                  #run_stage: ${{ parameters.Run_Stage }}
                   state_sub: $(vh_tf_state_sub)
                   additional_tf_var: $(ado_vars_to_tf.ado_vars)
