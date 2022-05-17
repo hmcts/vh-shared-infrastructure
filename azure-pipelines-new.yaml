@@ -17,10 +17,31 @@ variables:
 - name: tfVersion
   value: 1.1.0
   
+
+
+stages:
+################################################
+# Check State. #################################
+
+  - stages: 'Check Terraform State'
+    displayName: Check Terraform State
+    jobs:
+    - job: 'Check Terraform State'
+      displayName: Check Terraform State
+      variables:
+      - name: azureServiceConnection
+        value:  DTS-SHAREDSERVICES-Prod-Video Hearings
+      steps:
+      - template: pipeline-steps/check-state.yaml
+        parameters:
+          serviceConnection: $(azureServiceConnection)
+          resourceGroup: vh-infra-core-tf
+          storageAccountName: vhinfracoretf
+          containerName: tfstate
+
 ################################################
 # Terraform Plan Dev. ##########################
 
-stages:
   - stage: 'Terraform_Plan_Dev'
     displayName: 'Terraform Plan Dev'
     jobs: 
