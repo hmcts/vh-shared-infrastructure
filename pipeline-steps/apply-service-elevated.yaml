@@ -13,6 +13,8 @@ parameters:
     type: string
   - name: serviceConnection
     type: string
+  - name: backendServiceConnection
+    type: string
   - name: builtFrom
     type: string
   - name: product
