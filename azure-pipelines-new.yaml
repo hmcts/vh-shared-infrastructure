@@ -38,6 +38,7 @@ stages:
           resourceGroup: vh-infra-core-tf
           storageAccountName: vhinfracoretf
           containerName: tfstate
+          location: 'uk south'
 
 ################################################
 # Terraform Plan Dev. ##########################
