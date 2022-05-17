@@ -23,7 +23,7 @@ stages:
 ################################################
 # Check State. #################################
 
-  - stages: 'Check Terraform State'
+  - stage: 'Check Terraform State'
     displayName: Check Terraform State
     jobs:
     - job: 'Check Terraform State'
