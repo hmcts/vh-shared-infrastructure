@@ -93,42 +93,42 @@ stages:
   ################################################
   # Terraform Apply Dev. #########################
 
-    - stage: 'Terraform_Apply_${{ env }}'
-      displayName: 'Terraform Apply ${{ env }}'
-      variables:
-        - group: vh-tenant-creds
-        - name: environment
-          value: ${{ env }}
-        - group: external
-        - template: pipeline-steps/ado-vars.yaml
-          # If another project comes along and wants to use the same pipeline file then make this a variable in the UI
-          # but it might be better to template the pipeline more and have a different pipeline file
-          # so that someone doesn't pick the wrong var in the dropdown
-        - name: project
-          value: application
-        # same comment as above ^^
-        - name: environmentServiceConnection
-          value: DTS-SHAREDSERVICES-${{ env }}-Video Hearings #OPS-APPROVAL-GATE-${{ parameters.env }}-ENVS
-      jobs:
-        - deployment: 'Terraform_Apply_${{ env }}'
-          displayName: Terraform Apply ${{ env }}
-          continueOnError: false
-          environment: ${{ env }}
-          strategy:
-            runOnce:
-              deploy:
-                steps:
-                - template: pipeline-steps/apply-service-elevated.yaml
-                  parameters:
-                    environment: ${{ variables.environment }}
-                    location: 'UK South'
-                    stack: '09-video-hearing-core'
-                    project: $(project)
-                    product: 'vh'
-                    builtFrom: $(Build.Repository.Name)
-                    tfversion: $(tfversion)
-                    serviceConnection: ${{ variables.environmentServiceConnection }}
-                    backendServiceConnection: ${{ variables.tfStateServiceConnection }}
-                    activity_name: Video_Hearing_Core
-                    state_sub: $(vh_tf_state_sub)
-                    additional_tf_var: $(ado_vars_to_tf.ado_vars)
+  - stage: 'Terraform_Apply_${{ env }}'
+    displayName: 'Terraform Apply ${{ env }}'
+    variables:
+      - group: vh-tenant-creds
+      - name: environment
+        value: ${{ env }}
+      - group: external
+      - template: pipeline-steps/ado-vars.yaml
+        # If another project comes along and wants to use the same pipeline file then make this a variable in the UI
+        # but it might be better to template the pipeline more and have a different pipeline file
+        # so that someone doesn't pick the wrong var in the dropdown
+      - name: project
+        value: application
+      # same comment as above ^^
+      - name: environmentServiceConnection
+        value: DTS-SHAREDSERVICES-${{ env }}-Video Hearings #OPS-APPROVAL-GATE-${{ parameters.env }}-ENVS
+    jobs:
+      - deployment: 'Terraform_Apply_${{ env }}'
+        displayName: Terraform Apply ${{ env }}
+        continueOnError: false
+        environment: ${{ env }}
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - template: pipeline-steps/apply-service-elevated.yaml
+                parameters:
+                  environment: ${{ variables.environment }}
+                  location: 'UK South'
+                  stack: '09-video-hearing-core'
+                  project: $(project)
+                  product: 'vh'
+                  builtFrom: $(Build.Repository.Name)
+                  tfversion: $(tfversion)
+                  serviceConnection: ${{ variables.environmentServiceConnection }}
+                  backendServiceConnection: ${{ variables.tfStateServiceConnection }}
+                  activity_name: Video_Hearing_Core
+                  state_sub: $(vh_tf_state_sub)
+                  additional_tf_var: $(ado_vars_to_tf.ado_vars)
