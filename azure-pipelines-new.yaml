@@ -10,7 +10,7 @@ trigger:
   - none
 
 parameters:
-- name: environmet
+- name: environment
   type: object
   default:
    - Dev
