@@ -56,9 +56,9 @@ stages:
         # so that someone doesn't pick the wrong var in the dropdown
       - name: project
         value: application
-      # same comment as above ^^
-      - name: serviceConnection
-        value: DTS-SHAREDSERVICES-DEV-Video Hearings #OPS-APPROVAL-GATE-${{ parameters.env }}-ENVS
+        # same comment as above ^^
+      - name: environmentServiceConnection
+        value: DTS-SHAREDSERVICES-DEV-Video Hearings
       steps:
       - template: pipeline-steps/vh-tenant-replacement.yaml
         parameters:
@@ -77,11 +77,14 @@ stages:
           product: 'vh'
           builtFrom: $(Build.Repository.Name)
           tfversion: $(tfversion)
-          serviceConnection: ${{ variables.serviceConnection }}
+          serviceConnection: ${{ variables.environmentServiceConnection }}
           backendServiceConnection: ${{ variables.tfStateServiceConnection }}
           activity_name: Video_Hearing_Core
           state_sub: $(vh_tf_state_sub)
           additional_tf_var: $(ado_vars_to_tf.ado_vars)
+
+################################################
+# Terraform Apply Dev. #########################
 
   - stage: 'Terraform_Apply_Dev'
     displayName: 'Terraform Apply Dev'
@@ -97,13 +100,13 @@ stages:
       - name: project
         value: application
       # same comment as above ^^
-      - name: serviceConnection
+      - name: environmentServiceConnection
         value: DTS-SHAREDSERVICES-DEV-Video Hearings #OPS-APPROVAL-GATE-${{ parameters.env }}-ENVS
     jobs:
       - deployment: 'Terraform_Apply_Dev'
         displayName: Terraform Apply Dev
         continueOnError: false
-        environment: Dev1
+        environment: Dev
         strategy:
           runOnce:
             deploy:
@@ -117,7 +120,7 @@ stages:
                   product: 'vh'
                   builtFrom: $(Build.Repository.Name)
                   tfversion: $(tfversion)
-                  serviceConnection: ${{ variables.serviceConnection }}
+                  serviceConnection: ${{ variables.environmentServiceConnection }}
                   backendServiceConnection: ${{ variables.tfStateServiceConnection }}
                   activity_name: Video_Hearing_Core
                   state_sub: $(vh_tf_state_sub)
