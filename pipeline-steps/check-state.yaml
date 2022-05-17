@@ -23,7 +23,7 @@ steps:
         $location="${{ parameters.location }}"
         $storageAccountName="${{ parameters.storageAccountName }}"
         $containerName="${{ parameters.containerName }}"
-        $tags=@("application=video-hearing-service", "builtFrom=hmcts/vh-shared-infrastructure", "businessArea=Cross-Cutting", "criticality=High", "environment=Terraform")
+        $tags=@("application=video-hearing-service", "builtFrom=hmcts/vh-shared-infrastructure", "businessArea=Cross-Cutting", "criticality=High", "environment=production")
 
         az group create --name $resourceGroup --location $location --tags $tags
 
