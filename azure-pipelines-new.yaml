@@ -23,14 +23,14 @@ stages:
 ################################################
 # Check State. #################################
 
-  - stage: 'Check Terraform State'
+  - stage: 'Check_Terraform_State'
     displayName: Check Terraform State
     jobs:
-    - job: 'Check Terraform State'
+    - job: 'Check_Terraform_State'
       displayName: Check Terraform State
       variables:
       - name: azureServiceConnection
-        value:  DTS-SHAREDSERVICES-Prod-Video Hearings
+        value:  DTS-SHAREDSERVICES-PROD-Video Hearings
       steps:
       - template: pipeline-steps/check-state.yaml
         parameters:
