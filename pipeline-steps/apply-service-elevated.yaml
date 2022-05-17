@@ -13,8 +13,6 @@ parameters:
     type: string
   - name: serviceConnection
     type: string
- # - name: run_stage
- #   type: string
   - name: builtFrom
     type: string
   - name: product
@@ -52,12 +50,12 @@ steps:
       terraformVersion: ${{ parameters.tfversion }}
       workingDirectory: '$(Pipeline.Workspace)/${{ parameters.stack }}'
       backendType: azurerm
-      backendServiceArm: ${{ parameters.serviceConnection }}
-      backendAzureRmResourceGroupName: 'azure-control-${{ parameters.environment }}-rg'
+      backendServiceArm: ${{ parameters.backendServiceConnection }}
+      backendAzureRmResourceGroupName: 'vh-infra-core-tf'
       backendAzureRmResourceGroupLocation: ${{ parameters.location }}
-      backendAzureRmStorageAccountName: $(controlStorageAccount)
+      backendAzureRmStorageAccountName: vhinfracoretf
       backendAzureRmStorageAccountSku: Standard_LRS
-      backendAzureRmContainerName: subscription-tfstate
+      backendAzureRmContainerName: tfstate
       backendAzureRmKey: '${{ parameters.location }}/${{ parameters.project }}/${{ lower(parameters.environment) }}/${{ parameters.stack }}/terraform.tfstate'
       commandOptions: '-backend-config=subscription_id=${{ parameters.state_sub }}'
 
