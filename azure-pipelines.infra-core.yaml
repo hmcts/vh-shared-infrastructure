@@ -44,17 +44,6 @@ stages:
         storageAccountName: vhinfracoretf
         containerName: tfstate
         location: 'uk south'
-    - task: AzureCLI@2
-      inputs:
-        addSpnToEnvironment: true
-        azureSubscription: DTS-SHAREDSERVICES-Dev-Video Hearings
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: | 
-          cd $(System.DefaultWorkingDirectory)
-          echo "$servicePrincipalKey" > "$(System.DefaultWorkingDirectory)/key.txt"
-          sed -i 's/~/+/g' key.txt
-          cat $(System.DefaultWorkingDirectory)/key.txt
 
 ################################################
 # Terraform Plan & Apply. ######################
