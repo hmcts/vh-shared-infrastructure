@@ -95,10 +95,10 @@ stages:
       # so that someone doesn't pick the wrong var in the dropdown
     # same comment as above ^^
   jobs:
-    - deployment: 'Terraform_Apply_${{ env }}'
-      displayName: Terraform Apply ${{ env }}
+    - deployment: 'Terraform_Apply_${{ parameters.env }}'
+      displayName: Terraform Apply ${{ parameters.env }}
       continueOnError: false
-      environment: ${{ env }}
+      environment: ${{ parameters.env }}
       strategy:
         runOnce:
           deploy:
