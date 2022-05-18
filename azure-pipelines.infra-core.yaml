@@ -47,7 +47,7 @@ stages:
     - task: AzureCLI@2
       inputs:
         addSpnToEnvironment: true
-        azureSubscription: UKDDC_Azure_Subscription
+        azureSubscription: DTS-SHAREDSERVICES-Dev-Video Hearings
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: | 
