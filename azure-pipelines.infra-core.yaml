@@ -52,7 +52,7 @@ stages:
 - ${{ each env in parameters.environment }}:
   - template: pipeline-steps/terraform-plan-apply.yaml
     parameters:
-      tfVersion: ${{ variables.tfVersion }}
+      terraformVersion: ${{ variables.tfVersion }}
       env: ${{ env }}
       location: 'uk south'
       project: application
