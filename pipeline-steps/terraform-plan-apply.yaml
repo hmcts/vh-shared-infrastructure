@@ -56,13 +56,15 @@ stages:
       # so that someone doesn't pick the wrong var in the dropdown
       # same comment as above ^^
     steps:
-    - template: vh-tenant-replacement.yaml
-      parameters:
-        environment: ${{ variables.environment }}
+    - ${{ if eq(parameters.activityName, 'Video_Hearing_Core') }}:
+      - template: vh-tenant-replacement.yaml
+        parameters:
+          environment: ${{ variables.environment }}
 
-    - template: ado-vars-to-tf.yaml
-      parameters: 
-        environment: ${{ variables.environment }}
+    - ${{ if eq(parameters.activityName, 'Video_Hearing_Core') }}:
+      - template: ado-vars-to-tf.yaml
+        parameters: 
+          environment: ${{ variables.environment }}
 
     - ${{ if eq(parameters.activityName, 'Video_Hearing_Wowza') }}:
       - template: sshkey-download.yaml
