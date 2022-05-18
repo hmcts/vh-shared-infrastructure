@@ -24,7 +24,6 @@ variables:
   value: 1.1.0
 - name: tfStateServiceConnection
   value: DTS-SHAREDSERVICES-PROD-Video Hearings
-- group: vh-tenant-creds
 - group: external
   
 stages:

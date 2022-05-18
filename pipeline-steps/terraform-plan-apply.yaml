@@ -8,7 +8,10 @@ parameters:
 
 - name: location
   type: string
-  default: 'uk south'
+  default: 'UK South'
+  values:
+    - UK South
+    - UK West
 
 - name: project
   type: string
