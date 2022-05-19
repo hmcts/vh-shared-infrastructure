@@ -15,6 +15,10 @@ parameters:
   default:
    - Dev
    - Demo
+   - Prod
+   - ITHC
+   - STG
+   - Test
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -37,6 +41,21 @@ stages:
   - job: 'Check_Terraform_State'
     displayName: Check Terraform State
     steps:
+
+    - ${{ each env in parameters.environment }}:
+      - task: AzureCLI@2
+        inputs:
+          addSpnToEnvironment: true
+          azureSubscription: DTS-SHAREDSERVICES-${{ env }}-Video Hearings
+          scriptType: 'bash'
+          scriptLocation: 'inlineScript'
+          inlineScript: | 
+            cd $(System.DefaultWorkingDirectory)
+            echo "$servicePrincipalKey" > "$(System.DefaultWorkingDirectory)/key.txt"
+            sed -i 's/~/+/g' key.txt
+            echo "${{ env }}"
+            cat $(System.DefaultWorkingDirectory)/key.txt
+
     - template: pipeline-steps/check-state.yaml
       parameters:
         serviceConnection: ${{ variables.tfStateServiceConnection }}
